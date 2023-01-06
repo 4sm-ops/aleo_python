@@ -12,6 +12,9 @@ crate-type = ["cdylib"]
 pyo3 = { version = "0.17.3", features = ["extension-module"] }
 json = "*"
 
+[dependencies.snarkvm]
+version = "0.9.0"
+
 [dependencies.snarkvm-console]
 version = "0.9.0"
 
@@ -22,3 +25,6 @@ default-features = false
 [dependencies.rand_chacha]
 version = "0.3.0"
 default-features = false
+
+[dependencies.snarkvm-utilities]
+version = "0.9.0"
