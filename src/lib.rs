@@ -1,4 +1,5 @@
 use pyo3::prelude::*;
+use pyo3::exceptions::PyValueError;
 use snarkvm_console::{account::{Address, PrivateKey, ViewKey, Signature}, network::Testnet3};
 
 // use snarkvm::prelude::test_crypto_rng;
@@ -39,7 +40,12 @@ fn sign_message(priv_key: &str, message: &str) -> PyResult<String> {
   // let rng = &mut test_crypto_rng();
 
   // Get Private Key from priv_key string
-  let private_key = PrivateKey::<Testnet3>::from_str(priv_key).unwrap();
+  let private_data = PrivateKey::<Testnet3>::from_str(priv_key);
+
+  let private_key = match private_data {
+    Err(_) => return Err(PyValueError::new_err("Failed to validate private key")),
+    Ok(p_key) => p_key,
+  };
 
   // Get Address from Private Key
   let address = Address::try_from(&private_key).unwrap();
@@ -65,18 +71,30 @@ fn sign_message(priv_key: &str, message: &str) -> PyResult<String> {
 fn verify_message(address_key: &str, message: &str, signature: &str) -> PyResult<String> {
 
   // get Signature from string
-  let sign_to_verify = Signature::<Testnet3>::from_str(&signature).unwrap();
+  let signature_data = Signature::<Testnet3>::from_str(&signature);
+
+  let sign_to_verify = match signature_data {
+    Err(_) => return Err(PyValueError::new_err("Incorrect signature")),
+    Ok(signature) => signature,
+  };
 
   // get Address from string
-  let address_to_verify = Address::<Testnet3>::from_str(&address_key).unwrap();
+  let address_data = Address::<Testnet3>::from_str(&address_key);
+
+  let address_to_verify = match address_data {
+    Err(_) => return Err(PyValueError::new_err("Incorrect public address")),
+    Ok(address) => address,
+  };  
 
   // verify signature
-  let result = sign_to_verify.verify_bytes(&address_to_verify, message.as_bytes());
-  assert!(result, "Failed to execute signature verification");
+  let result_data = sign_to_verify.verify_bytes(&address_to_verify, message.as_bytes());
 
-  // return verification result
+  let result = match result_data {
+    false => false,
+    true => true,
+  };  
+
   Ok(result.to_string())
-  // Ok("123".to_string())
 }
 
 
